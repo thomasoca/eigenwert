@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://Assets/Tiles/main_lev_buildA.png" type="Texture" id=1]
+
+[node name="TileSet" type="Node2D"]
+
+[node name="main_lev_buildA" type="Sprite" parent="."]
+texture = ExtResource( 1 )
+centered = false
