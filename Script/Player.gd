@@ -49,7 +49,7 @@ func move_char():
 	direction = move_and_slide(direction, UP)
 func death_state():
 	state_machine.travel("death")
-	$CollisionShape2D.disabled = true
+	move_char()
 func move_state(delta) -> void:
 	if Input.is_action_pressed("ui_right"):
 		attack_counter = 0
@@ -122,6 +122,7 @@ func hit_state():
 	$Position2DHurtBox/Hurtbox/CollisionShape2D.disabled = true
 	$Position2D/Hitbox/CollisionShape2D.disabled = true
 	state_machine.travel("hit")
+	move_char()
 
 func hit_animation_finished():
 	$Position2DHurtBox/Hurtbox/CollisionShape2D.disabled = false
@@ -134,3 +135,8 @@ func _on_Hurtbox_area_entered(area):
 	state = HIT
 	if _stats.health <= 0:
 		state = DEATH
+		
+func set_active(active: bool):
+	set_physics_process(active)
+	set_process(active)
+	set_process_input(active)

@@ -2,6 +2,7 @@ extends KinematicBody2D
 
 # global var
 const UP = Vector2(0.0, -1.0)
+const JUMP_DUMMY = 20
 export var speed := 200.0
 export var patrol_speed := 100.0
 export var gravity := 20.0
@@ -28,8 +29,12 @@ func _ready():
 	_tree.active = true
 	_enemyHitboxVector.knockback_vector = direction
 	_playerHealth.connect("no_health", self, "_on_character_death")
-#func _process(delta):
-#	direction.y += gravity
+func _process(delta):
+	pass
+	if is_on_floor():
+		direction.y = JUMP_DUMMY
+	else:
+		direction.y += gravity
 func _physics_process(delta):
 	
 	knockback = knockback.move_toward(Vector2(0,0), speed)
@@ -51,7 +56,8 @@ func _physics_process(delta):
 func _on_character_death():
 	is_alive = false
 	state = StateEnum.IDLE
-
+func move_char():
+	direction = move_and_slide(direction, UP)
 func seek_player():
 	if _playerDetection.can_see_player():
 		state = StateEnum.CHASE
@@ -61,14 +67,16 @@ func chase_state():
 	if player != null and is_alive:
 		var relative_dist = (player.global_position - global_position)
 		var player_dir = relative_dist.normalized()
+		print(direction)
 		direction.x = direction.move_toward(player_dir, speed).x * speed
+		print(direction.x)
 		_enemyHitboxVector.knockback_vector = direction
 		if abs(relative_dist.x) < 50:
 			direction.x = direction.move_toward(player_dir, speed).x
 			state = StateEnum.ATTACK
 		change_dir(direction.x)
 		state_machine.travel("walk")
-		direction = move_and_slide(direction, UP)
+		move_char()
 	else:
 		if not is_patrol:
 			state = StateEnum.IDLE
@@ -109,7 +117,7 @@ func patrol_state():
 	if $RayCastX.is_colliding() and is_on_floor():
 		is_change_dir = false
 		change_dir(direction.x)
-	direction = move_and_slide(direction, UP)
+	move_char()
 	seek_player()
 	
 func change_dir(sprite_dir):
