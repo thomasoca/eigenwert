@@ -2,7 +2,6 @@ extends KinematicBody2D
 
 # global var
 const UP = Vector2(0.0, -1.0)
-const JUMP_DUMMY = 20
 export var speed := 200.0
 export var patrol_speed := 100.0
 export var gravity := 20.0
@@ -29,12 +28,6 @@ func _ready():
 	_tree.active = true
 	_enemyHitboxVector.knockback_vector = direction
 	_playerHealth.connect("no_health", self, "_on_character_death")
-func _process(delta):
-	pass
-	if is_on_floor():
-		direction.y = JUMP_DUMMY
-	else:
-		direction.y += gravity
 func _physics_process(delta):
 	
 	knockback = knockback.move_toward(Vector2(0,0), speed)
@@ -57,6 +50,7 @@ func _on_character_death():
 	is_alive = false
 	state = StateEnum.IDLE
 func move_char():
+	direction.y += gravity
 	direction = move_and_slide(direction, UP)
 func seek_player():
 	if _playerDetection.can_see_player():
@@ -67,9 +61,7 @@ func chase_state():
 	if player != null and is_alive:
 		var relative_dist = (player.global_position - global_position)
 		var player_dir = relative_dist.normalized()
-		print(direction)
 		direction.x = direction.move_toward(player_dir, speed).x * speed
-		print(direction.x)
 		_enemyHitboxVector.knockback_vector = direction
 		if abs(relative_dist.x) < 50:
 			direction.x = direction.move_toward(player_dir, speed).x
@@ -88,18 +80,19 @@ func hit_state():
 	$Position2D/Hurtbox/CollisionShape2D.disabled = true
 	$Position2DHitBox/Hitbox/CollisionShape2D.disabled = true
 	state_machine.travel("hit")
+	move_char()
 
 func death_state():
-	$CollisionShape2D.disabled = true
 	state_machine.travel("death")
+	move_char()
 
 func idle_state():
-	
 	state_machine.travel("idle")
+	move_char()
 	seek_player()
 
 func _on_Hurtbox_area_entered(area):
-	knockback = area.knockback_vector * 10
+	knockback = area.knockback_vector * 5
 	_stats.health -= area.attack_damage
 	state = StateEnum.HIT
 	if _stats.health <= 0:
@@ -108,7 +101,6 @@ func _on_Hurtbox_area_entered(area):
 func patrol_state():
 	is_patrol = true
 	direction.x = -patrol_speed if is_change_dir else patrol_speed
-	print(direction.y)
 	state_machine.travel("walk")
 	var object_collided_with = $RayCastX.get_collider()
 	if not $RayCastY.is_colliding() and is_on_floor():
@@ -145,6 +137,7 @@ func attack_state():
 	var attack_damage = randi() % (15 - 10) + 10
 	$Position2DHitBox/Hitbox.attack_damage = attack_damage
 	state_machine.travel("attack")
+	move_char()
 		
 func attack_animation_finished():
 	state_machine.travel("walk")

@@ -97,6 +97,7 @@ func attack_state(delta, type: String):
 	else:
 
 		state_machine.travel("attack_2")
+	move_char()
 
 func change_dir(dir):
 	$Position2D/Hitbox.scale.x = dir
@@ -129,7 +130,7 @@ func hit_animation_finished():
 	state = MOVE
 
 func _on_Hurtbox_area_entered(area):
-	knockback = area.knockback_vector * 7
+	knockback = area.knockback_vector * 5
 	print(area.attack_damage)
 	_stats.health -= area.attack_damage
 	state = HIT
